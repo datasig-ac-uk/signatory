@@ -14,15 +14,14 @@
 # =========================================================================
 """setup.py - hopefully you know what this does without me telling you..."""
 
-
 import setuptools
 import sys
+
 try:
     import torch.utils.cpp_extension as cpp
 except ImportError:
     raise ImportError("PyTorch is not installed, and must be installed prior to installing Signatory.")
-    
-import metadata
+
 
 extra_compile_args = []
 
@@ -34,8 +33,10 @@ if sys.platform.startswith('win'):  # windows
     extra_compile_args.append('/openmp')
 else:  # linux or mac
     extra_compile_args.append('-fopenmp')
+    extra_compile_args.append('-D_GLIBCXX_USE_CXX11_ABI=0')
+    extra_compile_args.extend(["-fvisibility-inlines-hidden", "-fvisibility=hidden"])
 
-ext_modules = [cpp.CppExtension(name='_impl',
+ext_modules = [cpp.CppExtension(name='signatory._impl',
                                 sources=['src/logsignature.cpp',
                                          'src/lyndon.cpp',
                                          'src/misc.cpp',
@@ -49,23 +50,5 @@ ext_modules = [cpp.CppExtension(name='_impl',
                                          'src/tensor_algebra_ops.hpp'],
                                 extra_compile_args=extra_compile_args)]
 
-
-setuptools.setup(name=metadata.project,
-                 version=metadata.version,
-                 author=metadata.author,
-                 author_email=metadata.author_email,
-                 maintainer=metadata.author,
-                 maintainer_email=metadata.author_email,
-                 description=metadata.description,
-                 long_description=metadata.readme,
-                 url=metadata.url,
-                 license=metadata.license,
-                 keywords=metadata.keywords,
-                 classifiers=metadata.classifiers,
-                 zip_safe=False,
-                 python_requires=metadata.python_requires,
-                 packages=[metadata.project],
-                 ext_package=metadata.project,
-                 package_dir={'': 'src'},
-                 ext_modules=ext_modules,
-                 cmdclass={'build_ext': cpp.BuildExtension})
+setuptools.setup(package_dir={'': 'src'},
+                 ext_modules=ext_modules)

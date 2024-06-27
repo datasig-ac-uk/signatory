@@ -39,7 +39,7 @@
     #error OpenMP required
 #endif
 
-PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
+PYBIND11_MODULE(_impl, m) {
     m.def("signature_to_logsignature_forward",
           &signatory::signature_to_logsignature_forward);
     m.def("signature_to_logsignature_backward",
