@@ -16,7 +16,11 @@
 
 import bisect
 import copy
-import numpy as np
+
+try:
+    import numpy as np
+except ImportError:
+    np = None
 import torch
 from torch import autograd
 from torch.autograd import function as autograd_function
@@ -509,7 +513,7 @@ class Path:
         elif isinstance(item, torch.Tensor):
             if item.ndimension() == 1:
                 not_valid = False
-        elif isinstance(item, np.ndarray):
+        elif np is not None and isinstance(item, np.ndarray):
             if item.ndim == 1:
                 not_valid = False
         elif isinstance(item, list):
