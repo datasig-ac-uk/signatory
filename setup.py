@@ -16,11 +16,38 @@
 
 import setuptools
 import sys
+import platform
+import ctypes
+
+
+from importlib import metadata as ilm
+from pathlib import Path
+
+
+
+# The RPATH entries on Linux are set wrong in Torch, so we do some hacks
+# using the metadata to find and load all the shared libraries, priming
+# the ld cache with all the libraries that might be needed.
+if platform.system() == "Linux" and platform.machine() == "x86_64":
+
+    torch_dist = ilm.distribution("torch")
+
+    requires = [
+        line.split(';')[0].split()[0].strip()
+        for line in torch_dist.requires
+        if line.endswith("platform_system == \"Linux\" and platform_machine == \"x86_64\"")
+    ]
+
+    for req in requires:
+        dist = ilm.distribution(req)
+        for so in (f for f in dist.files if f.match("*.so*")):
+            ctypes.CDLL(so.locate().resolve())
+
 
 try:
     import torch.utils.cpp_extension as cpp
-except ImportError:
-    raise ImportError("PyTorch is not installed, and must be installed prior to installing Signatory.")
+except ImportError as e:
+    raise ImportError("PyTorch is not installed, and must be installed prior to installing Signatory.") from e
 
 
 extra_compile_args = []
