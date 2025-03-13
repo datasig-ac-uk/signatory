@@ -51,17 +51,19 @@ except ImportError as e:
 
 
 extra_compile_args = []
+extra_link_args = []
 
 # fvisibility flag because of https://pybind11.readthedocs.io/en/stable/faq.html#someclass-declared-with-greater-visibility-than-the-type-of-its-field-someclass-member-wattributes
 if not sys.platform.startswith('win'):  # linux or mac
-    extra_compile_args.append('-fvisibility=hidden')
+    extra_compile_args.extend(["-fvisibility-inlines-hidden", "-fvisibility=hidden"])
 
 if sys.platform.startswith('win'):  # windows
     extra_compile_args.append('/openmp')
+elif platform.system() == "Darwin":
+    extra_compile_args.extend(["-Xclang", '-fopenmp'])
+    extra_link_args.append("-lomp")
 else:  # linux or mac
     extra_compile_args.append('-fopenmp')
-    extra_compile_args.append('-D_GLIBCXX_USE_CXX11_ABI=0')
-    extra_compile_args.extend(["-fvisibility-inlines-hidden", "-fvisibility=hidden"])
 
 ext_modules = [cpp.CppExtension(name='signatory._impl',
                                 sources=['src/logsignature.cpp',
@@ -75,7 +77,9 @@ ext_modules = [cpp.CppExtension(name='signatory._impl',
                                          'src/misc.hpp',
                                          'src/signature.hpp',
                                          'src/tensor_algebra_ops.hpp'],
-                                extra_compile_args=extra_compile_args)]
+                                extra_compile_args=extra_compile_args,
+                                extra_link_args=extra_link_args)]
 
 setuptools.setup(package_dir={'': 'src'},
+                 cmdclass = { "build_ext": cpp.BuildExtension },
                  ext_modules=ext_modules)

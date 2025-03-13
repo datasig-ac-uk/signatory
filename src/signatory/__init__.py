@@ -18,20 +18,6 @@ Project homepage: https://github.com/patrick-kidger/signatory
 Documentation: https://signatory.readthedocs.io
 """
 
-import platform
-
-if platform.system() == "Darwin":
-    # On MacOS, libomp is tricky to find because the operating system doesn't
-    # provide it. Torch packages libomp on MacOs, so we just need to make sure
-    # the signatory library can find it.
-    from ctypes import CDLL as _CDLL
-    from importlib import metadata as _ilm
-
-    dist = _ilm.distribution("torch")
-    for so in (f for f in dist.files if f.match("libomp.*")):
-        _CDLL(so.locate().resolve())
-
-
 import torch  # must be imported before anything from signatory
 
 try:
